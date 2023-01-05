@@ -93,8 +93,3 @@ export function ensureWaspDirLooksRight(thisCommand: any) {
     exit(1)
   }
 }
-
-export function getAppNameFromWaspFile(path: string): string {
-  // TODO
-  return 'foobar'
-}

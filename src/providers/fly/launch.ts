@@ -1,4 +1,4 @@
-import { $, cd, echo, question } from 'zx'
+import { $, cd, echo, fs, question } from 'zx'
 import crypto from 'crypto'
 import path from 'node:path'
 import { GlobalOptions, getTomlFileInfo, serverTomlExists, clientTomlExists, getAppNameFromToml, TomlFilePaths } from './helpers.js'
@@ -23,13 +23,14 @@ export async function launch(baseName: string, region: string, options: GlobalOp
       // Infer names from server fly.toml file.
       const serverName = getAppNameFromToml(tomlFiles.serverTomlPath)
       const clientName = serverName.replace('-server', '-client')
-      launchClient(serverName, clientName)
+      launchClient(serverName, clientName, region, options, tomlFiles)
     }
   } else {
     await launchServer(baseName, region, options, tomlFiles)
   }
 }
 
+// TODO: make the inputs for launchServer/Client be objects with interfaces
 // TODO: swap commands like rm with something from Node for improved portability.
 async function launchServer(baseName: string, region: string, options: GlobalOptions, tomlFiles: TomlFilePaths) {
   cd(path.join(options.waspDir, '.wasp', 'build'))
@@ -59,8 +60,41 @@ async function launchServer(baseName: string, region: string, options: GlobalOpt
   await $`flyctl deploy --remote-only`
 
   echo`Your server has been deployed! Starting on client now...`
+  launchClient(serverName, clientName, region, options, tomlFiles)
 }
 
-async function launchClient(serverName: string, clientName: string) {
+// TODO: make input an object with interface
+async function launchClient(serverName: string, clientName: string, region: string, options: GlobalOptions, tomlFiles: TomlFilePaths) {
+  echo`Launching client app with name ${clientName}`
 
+  const pwd = path.join(options.waspDir, '.wasp', 'build', 'web-app')
+  cd(pwd)
+  await $`rm -f fly.toml`
+
+  const serverUrl = `https://${serverName}.fly.dev`
+  const clientUrl = `https://${clientName}.fly.dev`
+
+  echo`Building web client for production...`
+  await $`npm install`
+  await $`REACT_APP_API_URL="${serverUrl}" npm run build`
+
+  // Creates the necessary Dockerfile for deploying static websites to Fly.io.
+  // Adds dummy .dockerignore to supress CLI question.
+  // Ref: https://fly.io/docs/languages-and-frameworks/static/
+  await $`echo "FROM pierrezemb/gostatic\nCMD [ \"-fallback\", \"index.html\" ]\nCOPY ./build/ /srv/http/" > Dockerfile`
+  await $`touch .dockerignore`
+
+  await $`flyctl launch --no-deploy --name "${clientName}" --region "${region}"`
+
+  // TODO: clean this up. Just copied from shell version.
+  // goStatic listens on port 8043 by default, but the default fly.toml assumes port 8080.
+  await $`cp fly.toml fly.toml.bak`
+  await $`sed "s/= 8080/= 8043/1" fly.toml > fly.toml.new`
+  await $`mv fly.toml.new fly.toml`
+
+  await $`cp -f fly.toml ${tomlFiles.clientTomlPath}`
+
+  await $`flyctl deploy --remote-only`
+
+  echo`Congratulations! Your Wasp app is now accessible at ${clientUrl}`
 }
