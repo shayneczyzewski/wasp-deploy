@@ -1,7 +1,7 @@
 import { Command, Option } from 'commander';
-import { launch as launchFn } from './launch';
-import { deploy as deployFn } from './deploy';
-import { cmd as cmdFn } from './cmd';
+import { launch as launchFn } from './launch.js';
+import { deploy as deployFn } from './deploy.js';
+import { cmd as cmdFn } from './cmd.js';
 
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly');
@@ -34,7 +34,6 @@ function makeExecuteFlyCommand(): Command {
   const context = new Option('--context <context>', 'client or server context')
     .choices(['server', 'client'])
     .makeOptionMandatory();
-
   cmd.description('Run arbitrary flyctl commands for server or client')
     .argument('<cmd...>', 'flyctl command to run in server/client context')
     .addOption(context)

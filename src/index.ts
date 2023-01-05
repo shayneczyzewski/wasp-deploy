@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { addFlyCommand } from './providers/fly/'
+import { addFlyCommand } from './providers/fly/index.js'
 
 const program = new Command();
 
