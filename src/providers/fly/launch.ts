@@ -81,7 +81,7 @@ async function launchClient(serverName: string, clientName: string, region: stri
   // Creates the necessary Dockerfile for deploying static websites to Fly.io.
   // Adds dummy .dockerignore to supress CLI question.
   // Ref: https://fly.io/docs/languages-and-frameworks/static/
-  await $`echo "FROM pierrezemb/gostatic\nCMD [ \"-fallback\", \"index.html\" ]\nCOPY ./build/ /srv/http/" > Dockerfile`
+  await $`echo 'FROM pierrezemb/gostatic\nCMD [ "-fallback", "index.html" ]\nCOPY ./build/ /srv/http/' > Dockerfile`
   await $`touch .dockerignore`
 
   await $`flyctl launch --no-deploy --name "${clientName}" --region "${region}"`
