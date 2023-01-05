@@ -44,16 +44,15 @@ async function launchServer(baseName: string, region: string, options: GlobalOpt
   echo`Launching server app with name ${serverName}`
   echo`NOTE: Please do not exit this terminal session until it has completed.`
 
-  await $`flyctl launch --no-deploy --name "${serverName}" --region "${region}"`
+  await $`flyctl launch --no-deploy --name ${serverName} --region ${region}`
   await $`cp -f fly.toml ${tomlFiles.serverTomlPath}`
 
   const randomString = crypto.randomBytes(32).toString('hex')
-  await $`flyctl secrets set JWT_SECRET="${randomString}" PORT=8080 WASP_WEB_CLIENT_URL="${clientUrl}"`
+  await $`flyctl secrets set JWT_SECRET=${randomString} PORT=8080 WASP_WEB_CLIENT_URL=${clientUrl}`
 
   // TODO: Make postgres vm size, etc. an optional param.
-  // TODO: Make org a required param.
-  await $`flyctl postgres create --name "${dbName}" --region "${region}" --vm-size "shared-cpu-1x" --initial-cluster-size 1 --volume-size 1 --org "personal"`
-  await $`flyctl postgres attach "${dbName}"`
+  await $`flyctl postgres create --name ${dbName} --region ${region} --vm-size ${"shared-cpu-1x"} --initial-cluster-size 1 --volume-size 1`
+  await $`flyctl postgres attach ${dbName}`
 
   await question('Please take note of your database credentials above. Press any key to continue.')
 
@@ -76,7 +75,7 @@ async function launchClient(serverName: string, clientName: string, region: stri
 
   echo`Building web client for production...`
   await $`npm install`
-  await $`REACT_APP_API_URL="${serverUrl}" npm run build`
+  await $`REACT_APP_API_URL=${serverUrl} npm run build`
 
   // Creates the necessary Dockerfile for deploying static websites to Fly.io.
   // Adds dummy .dockerignore to supress CLI question.
@@ -84,7 +83,7 @@ async function launchClient(serverName: string, clientName: string, region: stri
   await $`echo 'FROM pierrezemb/gostatic\nCMD [ "-fallback", "index.html" ]\nCOPY ./build/ /srv/http/' > Dockerfile`
   await $`touch .dockerignore`
 
-  await $`flyctl launch --no-deploy --name "${clientName}" --region "${region}"`
+  await $`flyctl launch --no-deploy --name ${clientName} --region ${region}`
 
   // TODO: clean this up. Just copied from shell version.
   // goStatic listens on port 8043 by default, but the default fly.toml assumes port 8080.

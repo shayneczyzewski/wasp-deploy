@@ -4,6 +4,8 @@ import toml from 'toml'
 import fs from 'fs'
 import path from 'node:path'
 
+// TODO: Clean this file up, separate into several.
+
 export async function flyctlExists(): Promise<boolean> {
   try {
     await $`command -v flyctl`
