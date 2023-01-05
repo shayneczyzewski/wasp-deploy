@@ -1,3 +1,3 @@
 export function deploy() {
-  console.log("deploy");
+  console.log("deploy")
 }

@@ -1,3 +1,3 @@
 export function cmd() {
-  console.log("cmd");
+  console.log("cmd")
 }
