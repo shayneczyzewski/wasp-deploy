@@ -4,7 +4,7 @@ import { deploy as deployFn } from './deploy/deploy.js'
 import { createDb as createDbFn } from './createDb/createDb.js'
 import { cmd as cmdFn } from './cmd/cmd.js'
 import { ensureWaspDirLooksRight } from './helpers/helpers.js'
-import { ensureFlyReady } from './helpers/flyctlHelpers.js'
+import { ensureFlyReady, ensureRegionIsValid } from './helpers/flyctlHelpers.js'
 import { CLIENT_CONTEXT_OPTION, SERVER_CONTEXT_OPTION } from './cmd/ICmdOptions.js'
 
 // TODO: make sure any dirs from options work with relative paths and expand them to absolute.
@@ -30,6 +30,7 @@ function makeFlySetupCommand(): Command {
   setup.description('Set up a new app on Fly.io (this does not deploy it)')
     .argument('<basename>', 'base app name to use on Fly.io')
     .argument('<region>', 'deployment region to use on Fly.io')
+    .hook('preAction', (_thisCommand, actionCommand) => ensureRegionIsValid(actionCommand.args[1]))
     .action(setupFn)
   return setup
 }
@@ -58,6 +59,7 @@ function makeCreateFlyDbCommand(): Command {
   const createDb = new Command('create-db')
   createDb.description('Creates a Postgres DB and attaches it to the server app')
     .argument('<region>', 'deployment region to use on Fly.io')
+    .hook('preAction', (_thisCommand, actionCommand) => ensureRegionIsValid(actionCommand.args[0]))
     .action(createDbFn)
   return createDb
 }

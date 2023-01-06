@@ -46,3 +46,17 @@ export async function ensureFlyReady() {
   }
   await ensureUserLoggedIn()
 }
+
+export async function ensureRegionIsValid(region: string) {
+  try {
+    const proc = await $`flyctl platform regions -j`
+    const regions = JSON.parse(proc.stdout)
+    if (!regions.find((r: any) => r.Code === region)) {
+      echo`Invalid region ${region}. Please specify a valid 3 character region id: https://fly.io/docs/reference/regions`
+      exit(1)
+    }
+  } catch {
+    // Ignore any errors while checking. Commands requiring a valid region will still fail if invalid, just not as nicely.
+    echo`Unable to validate region before calling flyctl.`
+  }
+}

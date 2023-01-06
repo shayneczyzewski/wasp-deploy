@@ -6,7 +6,6 @@ import { DeploymentInfo, IDeploymentInfo } from '../DeploymentInfo.js'
 import { IGlobalOptions } from '../IGlobalOptions.js'
 import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
 
-// TODO: validate region using $`flyctl platform regions -j` output
 export async function setup(baseName: string, region: string, options: IGlobalOptions) {
   echo`Setting up your Wasp app to Fly.io!`
 
