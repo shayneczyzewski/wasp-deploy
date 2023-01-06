@@ -1,5 +1,5 @@
-import { ITomlFilePaths } from './tomlFileHelpers.js'
-import { IGlobalOptions } from './IGlobalOptions.js'
+import { ITomlFilePaths } from '../helpers/tomlFileHelpers.js'
+import { IGlobalOptions } from '../IGlobalOptions.js'
 
 export interface ILaunchInfo {
   readonly baseName: string

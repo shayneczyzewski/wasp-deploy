@@ -1,9 +1,9 @@
 import { Command, Option } from 'commander'
-import { launch as launchFn } from './launch.js'
-import { deploy as deployFn } from './deploy.js'
-import { cmd as cmdFn } from './cmd.js'
-import { ensureWaspDirLooksRight } from './helpers.js'
-import { ensureFlyReady } from './flyctlHelpers.js'
+import { launch as launchFn } from './launch/launch.js'
+import { deploy as deployFn } from './deploy/deploy.js'
+import { cmd as cmdFn } from './cmd/cmd.js'
+import { ensureWaspDirLooksRight } from './helpers/helpers.js'
+import { ensureFlyReady } from './helpers/flyctlHelpers.js'
 
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly')
