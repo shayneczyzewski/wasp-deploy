@@ -28,7 +28,6 @@ function makeFlySetupCommand(): Command {
   setup.description('Set up a new app on Fly.io (this does not deploy it)')
     .argument('<basename>', 'base app name to use on Fly.io')
     .argument('<region>', 'deployment region to use on Fly.io')
-    .option('--skip-build', 'do not run wasp build before executing')
     .action(setupFn)
   return setup
 }
