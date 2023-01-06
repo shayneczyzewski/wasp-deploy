@@ -1,9 +1,9 @@
-import { ITomlFilePaths } from '../helpers/tomlFileHelpers.js'
-import { IGlobalOptions } from '../IGlobalOptions.js'
+import { ITomlFilePaths } from './helpers/tomlFileHelpers.js'
+import { IGlobalOptions } from './IGlobalOptions.js'
 
-export interface ILaunchInfo {
+export interface IDeploymentInfo {
   readonly baseName: string
-  readonly region: string
+  readonly region?: string
   readonly options: IGlobalOptions
   readonly tomlFiles: ITomlFilePaths
 
@@ -14,13 +14,13 @@ export interface ILaunchInfo {
   dbName(): string
 }
 
-export class LaunchInfo implements ILaunchInfo {
+export class DeploymentInfo implements IDeploymentInfo {
   baseName: string
-  region: string
+  region?: string
   options: IGlobalOptions
   tomlFiles: ITomlFilePaths
 
-  constructor(baseName: string, region: string, options: IGlobalOptions, tomlFiles: ITomlFilePaths) {
+  constructor(baseName: string, region: string | undefined, options: IGlobalOptions, tomlFiles: ITomlFilePaths) {
     this.baseName = baseName
     this.region = region
     this.options = options

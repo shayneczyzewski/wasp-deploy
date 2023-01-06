@@ -1,6 +1,7 @@
 import { Command, Option } from 'commander'
-import { launch as launchFn } from './launch/launch.js'
+import { setup as setupFn } from './setup/setup.js'
 import { deploy as deployFn } from './deploy/deploy.js'
+import { createDb as createDbFn } from './createDb/createDb.js'
 import { cmd as cmdFn } from './cmd/cmd.js'
 import { ensureWaspDirLooksRight } from './helpers/helpers.js'
 import { ensureFlyReady } from './helpers/flyctlHelpers.js'
@@ -8,8 +9,9 @@ import { CLIENT_CONTEXT_OPTION, SERVER_CONTEXT_OPTION } from './cmd/ICmdOptions.
 
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly')
-  fly.description('Deploy to Fly.io')
-    .addCommand(makeFlyLaunchCommand())
+  fly.description('Setup and deploy Wasp apps on Fly.io')
+    .addCommand(makeFlySetupCommand())
+    .addCommand(makeCreateFlyDbCommand())
     .addCommand(makeFlyDeployCommand())
     .addCommand(makeExecuteFlyCommand())
 
@@ -21,20 +23,20 @@ export function addFlyCommand(program: Command) {
   })
 }
 
-function makeFlyLaunchCommand(): Command {
-  const launch = new Command('launch')
-  launch.description('Launch a new app on Fly.io')
+function makeFlySetupCommand(): Command {
+  const setup = new Command('setup')
+  setup.description('Set up a new app on Fly.io (this does not deploy it)')
     .argument('<basename>', 'base app name to use on Fly.io')
     .argument('<region>', 'deployment region to use on Fly.io')
-    .option('--skip-build')
-    .action(launchFn)
-  return launch
+    .option('--skip-build', 'do not run wasp build before executing')
+    .action(setupFn)
+  return setup
 }
 
 function makeFlyDeployCommand(): Command {
   const deploy = new Command('deploy')
-  deploy.description('Redeploy existing app to Fly.io')
-    .option('--skip-build')
+  deploy.description('(Re-)Deploy existing app to Fly.io')
+    .option('--skip-build', 'do not run wasp build before executing')
     .action(deployFn)
   return deploy
 }
@@ -49,4 +51,12 @@ function makeExecuteFlyCommand(): Command {
     .addOption(context)
     .action(cmdFn)
   return cmd
+}
+
+function makeCreateFlyDbCommand(): Command {
+  const createDb = new Command('create-db')
+  createDb.description('Creates a Postgres DB and attaches it to the server app')
+    .argument('<region>', 'deployment region to use on Fly.io')
+    .action(createDbFn)
+  return createDb
 }
