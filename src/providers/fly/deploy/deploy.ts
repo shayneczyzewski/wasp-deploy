@@ -17,6 +17,8 @@ export async function deploy(options: IGlobalOptions) {
 
   const tomlFiles = getTomlFileInfo(options)
 
+  // NOTE: Below, it would be nice if we could store the client, server, and DB names somewhere.
+  // For now we just rely on the convention and infer from toml files.
   if (!serverTomlExists(tomlFiles)) {
     echo`Server toml missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
   } else {
@@ -36,6 +38,7 @@ export async function deploy(options: IGlobalOptions) {
   }
 }
 
+// TODO: Swap commands like `cp` with something from Node for improved portability.
 async function deployServer(deploymentInfo: IDeploymentInfo) {
   echo`Deploying your server now...`
 
@@ -60,6 +63,7 @@ async function deployServer(deploymentInfo: IDeploymentInfo) {
   echo`Server has been deployed!`
 }
 
+// TODO: Swap commands like `cp` with something from Node for improved portability.
 async function deployClient(deploymentInfo: IDeploymentInfo) {
   echo`Deploying your client now...`
 

@@ -7,6 +7,7 @@ import { ensureWaspDirLooksRight } from './helpers/helpers.js'
 import { ensureFlyReady } from './helpers/flyctlHelpers.js'
 import { CLIENT_CONTEXT_OPTION, SERVER_CONTEXT_OPTION } from './cmd/ICmdOptions.js'
 
+// TODO: make sure any dirs from options work with relative paths and expand them to absolute.
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly')
   fly.description('Setup and deploy Wasp apps on Fly.io')
@@ -15,6 +16,7 @@ export function addFlyCommand(program: Command) {
     .addCommand(makeFlyDeployCommand())
     .addCommand(makeExecuteFlyCommand())
 
+  // Add global options and hooks to all commands.
   fly.commands.forEach((cmd) => {
     cmd.requiredOption('--wasp-dir <dir>', 'path to Wasp project')
       .option('--toml-dir <dir>', 'path to where fly.toml files should live')
