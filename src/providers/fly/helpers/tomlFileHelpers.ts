@@ -24,6 +24,10 @@ export function clientTomlExists(paths: ITomlFilePaths): boolean {
   return fs.existsSync(paths.clientTomlPath)
 }
 
+export function localTomlExists(): boolean {
+  return fs.existsSync('fly.toml')
+}
+
 export function getAppNameFromToml(path: string): string {
   const content = fs.readFileSync(path, 'utf8')
   const data = toml.parse(content)

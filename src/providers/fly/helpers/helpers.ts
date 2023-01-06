@@ -1,5 +1,5 @@
 import { exit } from 'process'
-import { echo } from 'zx'
+import { echo, cd } from 'zx'
 import fs from 'fs'
 import path from 'node:path'
 
@@ -13,4 +13,12 @@ export function ensureWaspDirLooksRight(thisCommand: any) {
     echo`Please double check your path.`
     exit(1)
   }
+}
+
+export function cdToServerDir(waspDir: string) {
+  cd(path.join(waspDir, '.wasp', 'build'))
+}
+
+export function cdToClientDir(waspDir: string) {
+  cd(path.join(waspDir, '.wasp', 'build', 'web-app'))
 }

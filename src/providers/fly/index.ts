@@ -4,6 +4,7 @@ import { deploy as deployFn } from './deploy/deploy.js'
 import { cmd as cmdFn } from './cmd/cmd.js'
 import { ensureWaspDirLooksRight } from './helpers/helpers.js'
 import { ensureFlyReady } from './helpers/flyctlHelpers.js'
+import { CLIENT_CONTEXT_OPTION, SERVER_CONTEXT_OPTION } from './cmd/ICmdOptions.js'
 
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly')
@@ -41,7 +42,7 @@ function makeFlyDeployCommand(): Command {
 function makeExecuteFlyCommand(): Command {
   const cmd = new Command('cmd')
   const context = new Option('--context <context>', 'client or server context')
-    .choices(['server', 'client'])
+    .choices([SERVER_CONTEXT_OPTION, CLIENT_CONTEXT_OPTION])
     .makeOptionMandatory()
   cmd.description('Run arbitrary flyctl commands for server or client')
     .argument('<cmd...>', 'flyctl command to run in server/client context')

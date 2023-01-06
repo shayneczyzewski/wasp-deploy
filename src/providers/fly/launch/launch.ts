@@ -1,10 +1,11 @@
-import { $, cd, echo, fs, question } from 'zx'
+import { $, cd, echo, question } from 'zx'
 import crypto from 'crypto'
 import path from 'node:path'
 import { exit } from 'process'
 import { getTomlFileInfo, serverTomlExists, clientTomlExists, getAppNameFromToml } from '../helpers/tomlFileHelpers.js'
 import { LaunchInfo, ILaunchInfo } from './LaunchInfo.js'
 import { IGlobalOptions } from '../IGlobalOptions.js'
+import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
 
 // TODO: validate region using $`flyctl platform regions -j` output
 export async function launch(baseName: string, region: string, options: IGlobalOptions) {
@@ -46,7 +47,7 @@ export async function launch(baseName: string, region: string, options: IGlobalO
 
 // TODO: Swap commands like `rm` with something from Node for improved portability.
 async function launchServer(launchInfo: ILaunchInfo) {
-  cd(path.join(launchInfo.options.waspDir, '.wasp', 'build'))
+  cdToServerDir(launchInfo.options.waspDir)
   await $`rm -f fly.toml`
 
   echo`Launching server app with name ${launchInfo.serverName()}`
@@ -63,7 +64,7 @@ async function launchServer(launchInfo: ILaunchInfo) {
   // TODO: Make postgres vm size, etc. an optional param.
   // Creates a DB, waits for it to come up, then links it to the app.
   // The attachment process shares the DATABASE_URL secret.
-  await $`flyctl postgres create --name ${launchInfo.dbName()} --region ${launchInfo.region} --vm-size ${"shared-cpu-1x"} --initial-cluster-size 1 --volume-size 1`
+  await $`flyctl postgres create --name ${launchInfo.dbName()} --region ${launchInfo.region} --vm-size ${'shared-cpu-1x'} --initial-cluster-size 1 --volume-size 1`
   await $`flyctl postgres attach ${launchInfo.dbName()}`
 
   await question('Please take note of your database credentials above. Press any key to continue.')
@@ -79,9 +80,7 @@ async function launchServer(launchInfo: ILaunchInfo) {
 async function launchClient(launchInfo: ILaunchInfo) {
   echo`Launching client app with name ${launchInfo.clientName()}`
 
-  // TODO: Make this a helper.
-  const pwd = path.join(launchInfo.options.waspDir, '.wasp', 'build', 'web-app')
-  cd(pwd)
+  cdToClientDir(launchInfo.options.waspDir)
   await $`rm -f fly.toml`
 
   echo`Building web client for production...`
