@@ -1,6 +1,5 @@
 import { $, cd, echo, question } from 'zx'
 import crypto from 'crypto'
-import path from 'node:path'
 import { exit } from 'process'
 import { getTomlFileInfo, serverTomlExists, clientTomlExists, getAppNameFromToml } from '../helpers/tomlFileHelpers.js'
 import { LaunchInfo, ILaunchInfo } from './LaunchInfo.js'

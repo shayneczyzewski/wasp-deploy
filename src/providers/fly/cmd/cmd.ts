@@ -1,4 +1,3 @@
-import { Command } from 'commander'
 import { $, echo } from 'zx'
 import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
 import { clientTomlExists, getTomlFileInfo, ITomlFilePaths, localTomlExists, serverTomlExists } from '../helpers/tomlFileHelpers.js'
@@ -33,8 +32,8 @@ export async function cmd(cmdArgs: [string], options: ICmdOptions, command: any)
   try {
     await $`flyctl ${cmdArgs}`
   } catch {
-    await echo`Error running command. Note: many commands require a toml file or a -a option specifying the app name.`
-    await echo`If you already have an app, consider running "config save -- -a <app-name>".`
+    echo`Error running command. Note: many commands require a toml file or a -a option specifying the app name.`
+    echo`If you already have an app, consider running "config save -- -a <app-name>".`
     console.log(Object.getOwnPropertyNames(command))
     console.log(command.rawArgs)
   }
