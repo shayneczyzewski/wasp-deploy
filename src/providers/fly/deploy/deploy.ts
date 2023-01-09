@@ -1,6 +1,6 @@
 import { exit } from 'process'
 import { $, cd, echo, fs } from 'zx'
-import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
+import { cdToClientDir, cdToServerDir, lazyInit } from '../helpers/helpers.js'
 import * as tomlHelpers from '../helpers/tomlFileHelpers.js'
 import { IGlobalOptions } from '../IGlobalOptions.js'
 import { IDeploymentInfo, DeploymentInfo } from '../DeploymentInfo.js'
@@ -8,23 +8,24 @@ import { IDeploymentInfo, DeploymentInfo } from '../DeploymentInfo.js'
 export async function deploy(options: IGlobalOptions) {
   echo`Deploying your Wasp app to Fly.io!`
 
-  cd(options.waspDir)
-
-  // TODO: Only do this if one deploy will actually happen.
-  if (!options.skipBuild) {
-    await $`wasp build`
-  }
+  const lazyBuildWasp = lazyInit(async () => {
+    if (!options.skipBuild) {
+      cd(options.waspDir)
+      await $`wasp build`
+    }
+  })
 
   const tomlFiles = tomlHelpers.getTomlFileInfo(options)
 
   // NOTE: Below, it would be nice if we could store the client, server, and DB names somewhere.
-  // For now we just rely on the convention and infer from toml files.
+  // For now we just rely on the suffix naming convention and infer from toml files.
   if (!tomlHelpers.serverTomlExists(tomlFiles)) {
     echo`Server toml missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
   } else {
     const serverName = tomlHelpers.getAppNameFromToml(tomlFiles.serverTomlPath)
     const inferredBaseName = serverName.replace('-server', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
+    await lazyBuildWasp()
     await deployServer(deploymentInfo)
   }
 
@@ -34,6 +35,7 @@ export async function deploy(options: IGlobalOptions) {
     const clientName = tomlHelpers.getAppNameFromToml(tomlFiles.clientTomlPath)
     const inferredBaseName = clientName.replace('-client', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
+    await lazyBuildWasp()
     await deployClient(deploymentInfo)
   }
 }
