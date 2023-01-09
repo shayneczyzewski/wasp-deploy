@@ -40,7 +40,7 @@ export function ensureDirsAreAbsolute(thisCommand: Command) {
 // This lets us create a promise that will won't execute right away.
 // Additionally, like a normal promise, it can still be awaited many times
 // but only runs to completion once.
-export function lazyInit(fn: () => Promise<any>) {
-  let prom: Promise<void> | undefined = undefined
+export function lazyInit<Type>(fn: () => Promise<Type>) {
+  let prom: Promise<Type> | undefined = undefined
   return () => prom = (prom || fn())
 }

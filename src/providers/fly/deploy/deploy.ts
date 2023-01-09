@@ -8,7 +8,7 @@ import { IDeploymentInfo, DeploymentInfo } from '../DeploymentInfo.js'
 export async function deploy(options: IGlobalOptions) {
   echo`Deploying your Wasp app to Fly.io!`
 
-  const lazyBuildWasp = lazyInit(async () => {
+  const buildWasp = lazyInit(async () => {
     if (!options.skipBuild) {
       cd(options.waspDir)
       await $`wasp build`
@@ -25,7 +25,7 @@ export async function deploy(options: IGlobalOptions) {
     const serverName = tomlHelpers.getAppNameFromToml(tomlFiles.serverTomlPath)
     const inferredBaseName = serverName.replace('-server', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
-    await lazyBuildWasp()
+    await buildWasp()
     await deployServer(deploymentInfo)
   }
 
@@ -35,7 +35,7 @@ export async function deploy(options: IGlobalOptions) {
     const clientName = tomlHelpers.getAppNameFromToml(tomlFiles.clientTomlPath)
     const inferredBaseName = clientName.replace('-client', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
-    await lazyBuildWasp()
+    await buildWasp()
     await deployClient(deploymentInfo)
   }
 }
