@@ -4,7 +4,7 @@ import { isYes } from './helpers.js'
 
 export async function flyctlExists(): Promise<boolean> {
   try {
-    await $`command -v flyctl`
+    await $`flyctl version`
     return true
   } catch {
     return false
