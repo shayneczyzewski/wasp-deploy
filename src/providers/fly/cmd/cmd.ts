@@ -5,7 +5,7 @@ import { ICmdOptions, SERVER_CONTEXT_OPTION, CLIENT_CONTEXT_OPTION } from './ICm
 
 // Runs a command by copying down the toml files, executing it, and copying it back up (just in case).
 // If the toml file does not exist, some commands will not run with additional args.
-export async function cmd(flyctlArgs: [string], options: ICmdOptions, command: any) {
+export async function cmd(flyctlArgs: [string], options: ICmdOptions) {
   const tomlFiles = tomlHelpers.getTomlFileInfo(options)
 
   echo`Running ${options.context} command: flyctl ${flyctlArgs.join(' ')}`
@@ -17,7 +17,7 @@ export async function cmd(flyctlArgs: [string], options: ICmdOptions, command: a
       tomlHelpers.copyServerTomlLocally(tomlFiles)
     }
 
-    runFlyctlCommand(command, flyctlArgs)
+    runFlyctlCommand(flyctlArgs)
 
     if (tomlHelpers.localTomlExists()) {
       tomlHelpers.copyLocalTomlAsServerToml(tomlFiles)
@@ -31,7 +31,7 @@ export async function cmd(flyctlArgs: [string], options: ICmdOptions, command: a
       tomlHelpers.copyClientTomlLocally(tomlFiles)
     }
 
-    runFlyctlCommand(command, flyctlArgs)
+    runFlyctlCommand(flyctlArgs)
 
     if (tomlHelpers.localTomlExists()) {
       tomlHelpers.copyLocalTomlAsClientToml(tomlFiles)
@@ -39,13 +39,11 @@ export async function cmd(flyctlArgs: [string], options: ICmdOptions, command: a
   }
 }
 
-async function runFlyctlCommand(command: any, flyctlArgs: [string]) {
+async function runFlyctlCommand(flyctlArgs: [string]) {
   try {
     await $`flyctl ${flyctlArgs}`
   } catch {
     echo`Error running command. Note: many commands require a toml file or a -a option specifying the app name.`
     echo`If you already have an app, consider running "config save -- -a <app-name>".`
-    console.log(Object.getOwnPropertyNames(command))
-    console.log(command.rawArgs)
   }
 }

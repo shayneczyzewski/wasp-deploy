@@ -23,7 +23,7 @@ export async function isUserLoggedIn(): Promise<boolean> {
 export async function ensureUserLoggedIn() {
   const userLoggedIn = await isUserLoggedIn()
   if (!userLoggedIn) {
-    let answer = await question('flyctl is not logged into Fly.io. Would you like to log in now? ')
+    const answer = await question('flyctl is not logged into Fly.io. Would you like to log in now? ')
     if (isYes(answer)) {
       try {
         await $`flyctl auth login`
@@ -51,7 +51,7 @@ export async function ensureRegionIsValid(region: string) {
   try {
     const proc = await $`flyctl platform regions -j`
     const regions = JSON.parse(proc.stdout)
-    if (!regions.find((r: any) => r.Code === region)) {
+    if (!regions.find((r: { Code: string, Name: string }) => r.Code === region)) {
       echo`Invalid region ${region}. Please specify a valid 3 character region id: https://fly.io/docs/reference/regions`
       exit(1)
     }

@@ -48,7 +48,7 @@ async function deployServer(deploymentInfo: IDeploymentInfo) {
   try {
     const proc = await $`flyctl secrets list -j`
     const secrets = JSON.parse(proc.stdout)
-    if (!secrets.find((s: any) => s.Name === 'DATABASE_URL')) {
+    if (!secrets.find((s: { Name: string, Digest: string, CreatedAt: string }) => s.Name === 'DATABASE_URL')) {
       echo`Your server app does not have a DATABASE_URL secret set. Perhaps you need to create or attach your database?`
       exit(1)
     }
