@@ -1,44 +1,51 @@
 import { $, echo } from 'zx'
 import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
-import { clientTomlExists, getTomlFileInfo, ITomlFilePaths, localTomlExists, serverTomlExists } from '../helpers/tomlFileHelpers.js'
-import { ICmdOptions, SERVER_CONTEXT_OPTION } from './ICmdOptions.js'
+import * as tomlHelpers from '../helpers/tomlFileHelpers.js'
+import { ICmdOptions, SERVER_CONTEXT_OPTION, CLIENT_CONTEXT_OPTION } from './ICmdOptions.js'
 
 // Runs a command by copying down the toml files, executing it, and copying it back up (just in case).
 // If the toml file does not exist, some commands will not run with additional args.
-export async function cmd(cmdArgs: [string], options: ICmdOptions, command: any) {
-  const tomlFiles = getTomlFileInfo(options)
-  let cdFn: (waspDir: string) => void
-  let tomlExistsFn: (tomlFiles: ITomlFilePaths) => boolean
-  let tomlPath: string
+export async function cmd(flyctlArgs: [string], options: ICmdOptions, command: any) {
+  const tomlFiles = tomlHelpers.getTomlFileInfo(options)
+
+  echo`Running ${options.context} command: flyctl ${flyctlArgs.join(' ')}`
 
   if (options.context === SERVER_CONTEXT_OPTION) {
-    cdFn = cdToServerDir
-    tomlExistsFn = serverTomlExists
-    tomlPath = tomlFiles.serverTomlPath
-  } else {
-    cdFn = cdToClientDir
-    tomlExistsFn = clientTomlExists
-    tomlPath = tomlFiles.clientTomlPath
+    cdToServerDir(options.waspDir)
+    tomlHelpers.deleteLocalToml()
+    if (tomlHelpers.serverTomlExists(tomlFiles)) {
+      tomlHelpers.copyServerTomlLocally(tomlFiles)
+    }
+
+    runFlyctlCommand(command, flyctlArgs)
+
+    if (tomlHelpers.localTomlExists()) {
+      tomlHelpers.copyLocalTomlAsServerToml(tomlFiles)
+    }
   }
 
-  echo`Running ${options.context} command: flyctl ${cmdArgs.join(' ')}`
+  if (options.context === CLIENT_CONTEXT_OPTION) {
+    cdToClientDir(options.waspDir)
+    tomlHelpers.deleteLocalToml()
+    if (tomlHelpers.serverTomlExists(tomlFiles)) {
+      tomlHelpers.copyClientTomlLocally(tomlFiles)
+    }
 
-  cdFn(options.waspDir)
-  await $`rm -f fly.toml`
-  if (tomlExistsFn(tomlFiles)) {
-    await $`cp ${tomlPath} fly.toml`
+    runFlyctlCommand(command, flyctlArgs)
+
+    if (tomlHelpers.localTomlExists()) {
+      tomlHelpers.copyLocalTomlAsClientToml(tomlFiles)
+    }
   }
+}
 
+async function runFlyctlCommand(command: any, flyctlArgs: [string]) {
   try {
-    await $`flyctl ${cmdArgs}`
+    await $`flyctl ${flyctlArgs}`
   } catch {
     echo`Error running command. Note: many commands require a toml file or a -a option specifying the app name.`
     echo`If you already have an app, consider running "config save -- -a <app-name>".`
     console.log(Object.getOwnPropertyNames(command))
     console.log(command.rawArgs)
-  }
-
-  if (localTomlExists()) {
-    await $`cp -f fly.toml ${tomlPath}`
   }
 }

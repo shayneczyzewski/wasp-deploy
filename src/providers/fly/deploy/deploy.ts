@@ -1,7 +1,7 @@
 import { exit } from 'process'
-import { $, cd, echo } from 'zx'
+import { $, cd, echo, fs } from 'zx'
 import { cdToClientDir, cdToServerDir } from '../helpers/helpers.js'
-import { clientTomlExists, getAppNameFromToml, getTomlFileInfo, serverTomlExists } from '../helpers/tomlFileHelpers.js'
+import * as tomlHelpers from '../helpers/tomlFileHelpers.js'
 import { IGlobalOptions } from '../IGlobalOptions.js'
 import { IDeploymentInfo, DeploymentInfo } from '../DeploymentInfo.js'
 
@@ -10,40 +10,39 @@ export async function deploy(options: IGlobalOptions) {
 
   cd(options.waspDir)
 
-  // TODO: Only do this if one deploy will actually happen. Same in deploy.ts
+  // TODO: Only do this if one deploy will actually happen.
   if (!options.skipBuild) {
     await $`wasp build`
   }
 
-  const tomlFiles = getTomlFileInfo(options)
+  const tomlFiles = tomlHelpers.getTomlFileInfo(options)
 
   // NOTE: Below, it would be nice if we could store the client, server, and DB names somewhere.
   // For now we just rely on the convention and infer from toml files.
-  if (!serverTomlExists(tomlFiles)) {
+  if (!tomlHelpers.serverTomlExists(tomlFiles)) {
     echo`Server toml missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
   } else {
-    const serverName = getAppNameFromToml(tomlFiles.serverTomlPath)
+    const serverName = tomlHelpers.getAppNameFromToml(tomlFiles.serverTomlPath)
     const inferredBaseName = serverName.replace('-server', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
     await deployServer(deploymentInfo)
   }
 
-  if (!clientTomlExists(tomlFiles)) {
+  if (!tomlHelpers.clientTomlExists(tomlFiles)) {
     echo`Client toml missing. Skipping client deploy. Perhaps you need to run the "setup" command first?`
   } else {
-    const clientName = getAppNameFromToml(tomlFiles.clientTomlPath)
+    const clientName = tomlHelpers.getAppNameFromToml(tomlFiles.clientTomlPath)
     const inferredBaseName = clientName.replace('-client', '')
     const deploymentInfo = new DeploymentInfo(inferredBaseName, undefined, options, tomlFiles)
     await deployClient(deploymentInfo)
   }
 }
 
-// TODO: Swap commands like `cp` with something from Node for improved portability.
 async function deployServer(deploymentInfo: IDeploymentInfo) {
   echo`Deploying your server now...`
 
   cdToServerDir(deploymentInfo.options.waspDir)
-  await $`cp -f ${deploymentInfo.tomlFiles.serverTomlPath} fly.toml`
+  tomlHelpers.copyServerTomlLocally(deploymentInfo.tomlFiles)
 
   // Make sure we have a DATABASE_URL present. If not, they need to create/attach their DB first.
   try {
@@ -60,15 +59,16 @@ async function deployServer(deploymentInfo: IDeploymentInfo) {
 
   await $`flyctl deploy --remote-only`
 
+  tomlHelpers.copyLocalTomlAsServerToml(deploymentInfo.tomlFiles)
+
   echo`Server has been deployed!`
 }
 
-// TODO: Swap commands like `cp` with something from Node for improved portability.
 async function deployClient(deploymentInfo: IDeploymentInfo) {
   echo`Deploying your client now...`
 
   cdToClientDir(deploymentInfo.options.waspDir)
-  await $`cp -f ${deploymentInfo.tomlFiles.clientTomlPath} fly.toml`
+  tomlHelpers.copyClientTomlLocally(deploymentInfo.tomlFiles)
 
   echo`Building web client for production...`
   await $`npm install`
@@ -77,10 +77,17 @@ async function deployClient(deploymentInfo: IDeploymentInfo) {
   // Creates the necessary Dockerfile for deploying static websites to Fly.io.
   // Adds dummy .dockerignore to supress CLI question.
   // Ref: https://fly.io/docs/languages-and-frameworks/static/
-  await $`echo 'FROM pierrezemb/gostatic\nCMD [ "-fallback", "index.html" ]\nCOPY ./build/ /srv/http/' > Dockerfile`
-  await $`touch .dockerignore`
+  const dockerfileContents = `
+    FROM pierrezemb/gostatic
+    CMD [ "-fallback", "index.html" ]
+    COPY ./build/ /srv/http/
+  `
+  fs.writeFileSync('Dockerfile', dockerfileContents)
+  fs.writeFileSync('.dockerignore', '')
 
   await $`flyctl deploy --remote-only`
+
+  tomlHelpers.copyLocalTomlAsClientToml(deploymentInfo.tomlFiles)
 
   echo`Client has been deployed! Your Wasp app is accessible at: ${deploymentInfo.clientUrl()}`
 }

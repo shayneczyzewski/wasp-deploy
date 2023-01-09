@@ -3,11 +3,10 @@ import { setup as setupFn } from './setup/setup.js'
 import { deploy as deployFn } from './deploy/deploy.js'
 import { createDb as createDbFn } from './createDb/createDb.js'
 import { cmd as cmdFn } from './cmd/cmd.js'
-import { ensureWaspDirLooksRight } from './helpers/helpers.js'
+import { ensureWaspDirLooksRight, ensureDirsAreAbsolute } from './helpers/helpers.js'
 import { ensureFlyReady, ensureRegionIsValid } from './helpers/flyctlHelpers.js'
 import { CLIENT_CONTEXT_OPTION, SERVER_CONTEXT_OPTION } from './cmd/ICmdOptions.js'
 
-// TODO: make sure any dirs from options work with relative paths and expand them to absolute.
 export function addFlyCommand(program: Command) {
   const fly = program.command('fly')
   fly.description('Setup and deploy Wasp apps on Fly.io')
@@ -21,6 +20,7 @@ export function addFlyCommand(program: Command) {
     cmd.requiredOption('--wasp-dir <dir>', 'path to Wasp project')
       .option('--toml-dir <dir>', 'path to where fly.toml files should live')
       .hook('preAction', ensureFlyReady)
+      .hook('preAction', ensureDirsAreAbsolute)
       .hook('preAction', ensureWaspDirLooksRight)
   })
 }

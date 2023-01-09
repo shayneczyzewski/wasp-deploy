@@ -22,3 +22,15 @@ export function cdToServerDir(waspDir: string) {
 export function cdToClientDir(waspDir: string) {
   cd(path.join(waspDir, '.wasp', 'build', 'web-app'))
 }
+
+export function ensureDirsAreAbsolute(thisCommand: any) {
+  if (thisCommand.opts().waspDir && !path.isAbsolute(thisCommand.opts().waspDir)) {
+    echo`The Wasp dir path must be absolute.`
+    exit(1)
+  }
+
+  if (thisCommand.opts().tomlDir && !path.isAbsolute(thisCommand.opts().tomlDir)) {
+    echo`The toml dir path must be absolute.`
+    exit(1)
+  }
+}
