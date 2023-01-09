@@ -59,6 +59,9 @@ function makeCreateFlyDbCommand(): Command {
   const createDb = new Command('create-db')
   createDb.description('Creates a Postgres DB and attaches it to the server app')
     .argument('<region>', 'deployment region to use on Fly.io')
+    .option('--vm-size <vmSize>', 'flyctl postgres create option', 'shared-cpu-1x')
+    .option('--initial-cluster-size <initialClusterSize>', 'flyctl postgres create option', '1')
+    .option('--volume-size <volumeSize>', 'flyctl postgres create option', '1')
     .hook('preAction', (_thisCommand, actionCommand) => ensureRegionIsValid(actionCommand.args[0]))
     .action(createDbFn)
   return createDb
