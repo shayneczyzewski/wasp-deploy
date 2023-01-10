@@ -20,7 +20,7 @@ export async function deploy(options: IGlobalOptions) {
   // NOTE: Below, it would be nice if we could store the client, server, and DB names somewhere.
   // For now we just rely on the suffix naming convention and infer from toml files.
   if (!tomlHelpers.serverTomlExists(tomlFiles)) {
-    echo`Server toml missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
+    echo`${tomlFiles.serverTomlPath} missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
   } else {
     const serverName = tomlHelpers.getAppNameFromToml(tomlFiles.serverTomlPath)
     const inferredBaseName = serverName.replace('-server', '')
@@ -30,7 +30,7 @@ export async function deploy(options: IGlobalOptions) {
   }
 
   if (!tomlHelpers.clientTomlExists(tomlFiles)) {
-    echo`Client toml missing. Skipping client deploy. Perhaps you need to run the "setup" command first?`
+    echo`${tomlFiles.clientTomlPath} missing. Skipping client deploy. Perhaps you need to run the "setup" command first?`
   } else {
     const clientName = tomlHelpers.getAppNameFromToml(tomlFiles.clientTomlPath)
     const inferredBaseName = clientName.replace('-client', '')

@@ -8,7 +8,7 @@ export async function createDb(region: string, options: ICreateDbOptions) {
   const tomlFiles = getTomlFileInfo(options)
 
   if (!serverTomlExists(tomlFiles)) {
-    echo`Server toml missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
+    echo`${tomlFiles.serverTomlPath} missing. Skipping server deploy. Perhaps you need to run the "setup" command first?`
     exit(1)
   }
 
